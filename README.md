@@ -41,8 +41,8 @@ TalentFlow-AI/
 │   ├── tasks.py        # Defines the specific instructions for each agent
 │   ├── tools.py        # Custom tool for Exa.ai candidate search
 │   ├── models.py       # Pydantic models for structured data output
-│   └── main.py         # (Optional) CLI entry point for testing
-├── app.py              # Main Streamlit Application (The UI)
+│   ├── main.py         # (Optional) CLI entry point for testing
+│   └── app.py          # Main Streamlit Application (The UI)
 ├── requirements.txt    # Python dependencies
 ├── .env                # API Keys (Not included in repo)
 ├── .gitignore          # Files to ignore (secrets, venv)
@@ -52,7 +52,7 @@ TalentFlow-AI/
 
 1. Clone the Repository
 ```bash
-git clone [https://github.com/YOUR_USERNAME/TalentFlow-AI.git](https://github.com/YOUR_USERNAME/TalentFlow-AI.git)
+git clone [https://github.com/sharma-piyush1/TalentFlow-AI.git](https://github.com/sharma-piyush1/TalentFlow-AI.git)
 cd TalentFlow-AI
 ```
 2. Create a Virtual Environment
