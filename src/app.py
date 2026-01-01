@@ -3,19 +3,34 @@ import pandas as pd
 import os
 import sys
 
-# --- FIX START: Add 'src' to the system path ---
-# This tells Python to look inside the 'src' folder for imports
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
-# --- FIX END ---
+# --- 1. SETUP & SECRETS INJECTION (CRITICAL FIX) ---
+# We must load secrets into os.environ BEFORE importing agents
+# otherwise agents.py will crash looking for keys that don't exist yet.
 
+try:
+    if "GOOGLE_API_KEY" in st.secrets:
+        os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+    
+    if "EXA_API_KEY" in st.secrets:
+        os.environ["EXA_API_KEY"] = st.secrets["EXA_API_KEY"]
+except FileNotFoundError:
+    # This happens locally if secrets.toml doesn't exist, which is fine
+    # because load_dotenv() will handle it later.
+    pass
+# ---------------------------------------------------
+
+# --- 2. PATH SETUP ---
+sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+
+# --- 3. IMPORTS ---
 from dotenv import load_dotenv
 from crewai import Crew, Process
-# Now these imports will work because Python knows to look in 'src'
 from agents import RecruitmentAgents
 from tasks import RecruitmentTasks
 
 load_dotenv()
 
+# --- 4. STREAMLIT UI ---
 st.set_page_config(page_title="TalentFlow AI", page_icon="🚀", layout="wide")
 
 st.title("🚀 TalentFlow: AI Recruitment Engine")
@@ -56,7 +71,7 @@ if start_search:
                 agents=[researcher, profiler],
                 tasks=[task1, task2],
                 verbose=True,
-                max_rpm=20 # Limit to avoid 429 errors
+                max_rpm=20
             )
 
             result = crew_1.kickoff()
