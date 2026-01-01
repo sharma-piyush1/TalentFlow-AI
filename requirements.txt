@@ -1,0 +1,8 @@
+crewai
+langchain_groq
+streamlit
+python-dotenv
+exa-py
+pandas
+litellm
+langchain_community
