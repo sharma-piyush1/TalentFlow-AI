@@ -1,5 +1,5 @@
 from crewai import Task
-from models import CandidateList # Import our new model
+from models import CandidateList 
 
 class RecruitmentTasks:
 

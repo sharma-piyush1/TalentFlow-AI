@@ -13,7 +13,6 @@ def find_candidates(query: str) -> str:
     
     try:
         # Perform the search
-        # We removed 'use_autoprompt' because it was causing crashes.
         # We added 'text=True' so the agent can read the profile summary.
         result = exa.search_and_contents(
             query,
