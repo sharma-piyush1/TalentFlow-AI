@@ -1,4 +1,4 @@
-# 🚀 TalentFlow AI: The Autonomous Recruitment Engine
+# TalentFlow AI: The Autonomous Recruitment Engine
 
 ## Streamlit App: 
 https://talentflow-ai.streamlit.app
