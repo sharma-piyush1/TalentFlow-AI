@@ -104,7 +104,6 @@ From the repository root:
 streamlit run src/app.py
 ```
 
-The existing README lists a hosted Streamlit URL at `https://talentflow-ai.streamlit.app`; its availability and deployment configuration are not verifiable from the source files in this repository.
 
 ## Use the application
 
