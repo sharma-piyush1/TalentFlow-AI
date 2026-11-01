@@ -132,14 +132,3 @@ After building the image, the Streamlit app can be started by overriding the com
 docker build -t talentflow-ai .
 docker run --rm -p 8501:8501 --env-file .env --entrypoint streamlit talentflow-ai run src/app.py --server.port=8501 --server.address=0.0.0.0
 ```
-
-## Current behavior and limits
-
-- Candidate search and language-model calls depend on Exa and Google's Gemini-compatible endpoint; provider failures can interrupt a workflow.
-- The search tool converts Exa exceptions into an error string for the agent. The UI catches exceptions around the search crew and displays them.
-- The app asks agents to find real profiles and score fit, but the repository does not implement independent identity or employment verification.
-- Search and profiling instructions include fixed role/location/skill criteria alongside the submitted job description.
-- Candidate email drafts are displayed for review; there is no email delivery integration.
-- The CSV contains the edited table, including its selection column, rather than only selected rows.
-- There is no API service or REST route in this repository; the user interface is Streamlit.
-- No automated tests are present in the tracked project tree.
