@@ -1,5 +1,7 @@
 # TalentFlow AI
 
+> **Streamlit demo:** [TalentFlow AI](https://talentflow-ai.streamlit.app)
+
 TalentFlow AI is a Streamlit application that uses CrewAI agents to search for candidate profiles, return structured candidate data, let a recruiter review and edit the results, and draft outreach emails for selected candidates.
 
 ## How it works
