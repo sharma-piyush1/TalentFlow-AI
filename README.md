@@ -1,111 +1,145 @@
-# TalentFlow AI: The Autonomous Recruitment Engine
+# TalentFlow AI
 
-## Streamlit App: 
-https://talentflow-ai.streamlit.app
+TalentFlow AI is a Streamlit application that uses CrewAI agents to search for candidate profiles, return structured candidate data, let a recruiter review and edit the results, and draft outreach emails for selected candidates.
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white)
-![CrewAI](https://img.shields.io/badge/Powered_by-CrewAI-orange?style=for-the-badge)
-![Streamlit](https://img.shields.io/badge/Streamlit-UI-red?style=for-the-badge&logo=streamlit&logoColor=white)
-![Gemini](https://img.shields.io/badge/AI-Google_Gemini-4285F4?style=for-the-badge&logo=google&logoColor=white)
+## How it works
 
-**TalentFlow AI** is a multi-agent system designed to automate the early stages of recruitment. It employs a team of intelligent AI agents to **source** candidates from the web, **analyze** their fit against a Job Description, and **draft** personalized outreach emails—all within a clean, interactive Human-in-the-Loop interface.
+```mermaid
+flowchart TD
+    R[Recruiter enters a job description] --> S[Researcher agent]
+    S --> X[Exa neural search]
+    X -->|Search results and profile text| S
+    S --> P[Profiler agent]
+    P --> M[CandidateList Pydantic output]
+    M --> T[Streamlit editable candidate table]
+    T -->|Recruiter selects candidates| W[Writer agent]
+    W --> E[Draft outreach emails shown in UI]
+    T --> C[Download edited table as CSV]
+```
 
----
+The Streamlit app runs two separate CrewAI crews. The first uses a researcher with the `find_candidates` Exa tool and a profiler that returns a `CandidateList`. The second creates a writer agent only after the recruiter selects candidates and clicks **Write Emails**. The app keeps the search results and email state in Streamlit session state.
 
-## 🌟 Key Features
+## Agents and data
 
-* **🔍 Agentic Web Sourcing:** Uses `Exa.ai` (Neural Search) to find high-quality candidate profiles (LinkedIn, GitHub, Portfolios) that match specific tech stacks.
-* **🧠 Intelligent Profiling:** A specialized Profiler Agent scores candidates (0-10) based on strict JD alignment using **Google Gemini**.
-* **👨‍💻 Human-in-the-Loop Workflow:** The AI doesn't just run wild. It presents candidates in an interactive table for you to review, filter, and edit before proceeding.
-* **📧 Automated Outreach:** Generates hyper-personalized cold emails referencing specific skills and projects found in the candidate's profile.
-* **📊 Structured Data Export:** Download your shortlisted candidates and their scores as a CSV file for your ATS or Excel.
+| Component | Behavior in the repository |
+| --- | --- |
+| Researcher | Uses `find_candidates` to search Exa for personal profile results; the agent prompt instructs it to use returned profiles and not invent people. |
+| Profiler | Scores candidate fit and returns structured output using `CandidateList`. |
+| Writer | Drafts outreach text for the candidate rows selected in the UI. |
+| Candidate fields | `name`, `profile_url`, `skills`, `score`, and `reasoning`. |
+| Search tool | Exa neural search, `category="personal"`, up to five results per tool call, with text content enabled. |
+| LLM configuration | CrewAI `LLM` configured for `openai/gemini-3-flash-preview` through Google's OpenAI-compatible API endpoint. |
 
----
+The task prompts currently contain fixed search and profiling criteria: Bhopal first, then remote; Python, FastAPI, Docker, and LangChain. The entered job description is passed to sourcing, but those criteria are also explicitly embedded in the task instructions. The Pydantic model describes scores as 0–10 but does not define numeric bounds.
 
-## 🛠️ Tech Stack
-
-* **Framework:** [CrewAI](https://crewai.com) (Multi-Agent Orchestration)
-* **Interface:** [Streamlit](https://streamlit.io) (Web UI)
-* **LLM Provider:** Google gemini-3-flash-preview (via OpenAI Compatibility Layer)
-* **Search Tool:** [Exa.ai](https://exa.ai) (Neural Search API)
-* **Language:** Python 3.10+
-
----
-
-## 📂 Project Structure
+## Project structure
 
 ```text
 TalentFlow-AI/
 ├── src/
-│   ├── agents.py       # Defines the Researcher, Profiler, and Writer agents
-│   ├── tasks.py        # Defines the specific instructions for each agent
-│   ├── tools.py        # Custom tool for Exa.ai candidate search
-│   ├── models.py       # Pydantic models for structured data output
-│   ├── main.py         # (Optional) CLI entry point for testing
-│   └── app.py          # Main Streamlit Application (The UI)
-├── requirements.txt    # Python dependencies
-├── .env                # API Keys (Not included in repo)
-├── .gitignore          # Files to ignore (secrets, venv)
-└── README.md           # Documentation
+│   ├── agents.py   # CrewAI agent definitions and Gemini configuration
+│   ├── app.py      # Streamlit user interface and staged workflow
+│   ├── main.py     # Standalone sequential CrewAI workflow
+│   ├── models.py   # Candidate and CandidateList Pydantic models
+│   ├── tasks.py    # Sourcing, profiling, and writing task prompts
+│   └── tools.py    # Exa candidate search tool
+├── Dockerfile
+├── requirements.txt
+├── architecture_diagram.drawio.png
+├── .dockerignore
+└── .gitignore
 ```
-## Installation & Setup
 
-1. Clone the Repository
+## Setup
+
+The project uses Python 3.10 in its Docker base image. The dependencies in `requirements.txt` are not version-pinned.
+
+1. Clone the repository and enter it:
+
+   ```bash
+   git clone https://github.com/sharma-piyush1/TalentFlow-AI.git
+   cd TalentFlow-AI
+   ```
+
+2. Create and activate a virtual environment:
+
+   ```bash
+   python -m venv .venv
+   ```
+
+   Windows PowerShell:
+
+   ```powershell
+   .venv\Scripts\Activate.ps1
+   ```
+
+   macOS/Linux:
+
+   ```bash
+   source .venv/bin/activate
+   ```
+
+3. Install dependencies:
+
+   ```bash
+   python -m pip install -r requirements.txt
+   ```
+
+4. Create a `.env` file in the repository root:
+
+   ```dotenv
+   GOOGLE_API_KEY=your_google_api_key
+   EXA_API_KEY=your_exa_api_key
+   ```
+
+The code loads these values with `python-dotenv`. The Google key is used for the configured Gemini model; the Exa key is used by the candidate search tool.
+
+## Run the Streamlit application
+
+From the repository root:
+
 ```bash
-git clone [https://github.com/sharma-piyush1/TalentFlow-AI.git](https://github.com/sharma-piyush1/TalentFlow-AI.git)
-cd TalentFlow-AI
+streamlit run src/app.py
 ```
-2. Create a Virtual Environment
+
+The existing README lists a hosted Streamlit URL at `https://talentflow-ai.streamlit.app`; its availability and deployment configuration are not verifiable from the source files in this repository.
+
+## Use the application
+
+1. Enter a job description in the sidebar and choose **Find & Score Candidates**.
+2. Review the returned rows in the editable table. The table includes a **Select** checkbox column and allows candidate details to be edited.
+3. Choose rows and click **Write Emails** to request drafts for the selected candidate data.
+4. Use **Download Candidate List (CSV)** to download the current edited table. The CSV includes the table's `Select` column; the code does not filter the download to only selected rows.
+5. Review the generated email text displayed in the app. The code does not send emails.
+
+## Standalone workflow
+
+`src/main.py` defines a fixed example job description and runs sourcing, profiling, and writing tasks in one sequential CrewAI crew:
+
 ```bash
-# Windows
-python -m venv venv
-venv\Scripts\activate
-
-# Mac/Linux
-python3 -m venv venv
-source venv/bin/activate
+python src/main.py
 ```
-3. Install Dependencies
+
+This path calls the same external services and requires the same API keys. Although the script prints a message saying the result was saved to `candidates_outreach.md`, the current code only prints the Crew result and does not write that file.
+
+## Docker
+
+A Dockerfile is present and builds from `python:3.10-slim`. Its current startup command runs `streamlit run app.py`, but the application file is located at `src/app.py`; there is no root-level `app.py`. As written, the container startup command therefore points to a file that is not in the repository.
+
+After building the image, the Streamlit app can be started by overriding the command to use the actual path:
+
 ```bash
-pip install -r requirements.txt
-```
-4. Configure API Keys
-```bash
-# Get a free key from [https://aistudio.google.com/](https://aistudio.google.com/)
-GOOGLE_API_KEY="AIzaSy..."
-
-# Get a free key from [https://exa.ai/](https://exa.ai/)
-EXA_API_KEY="exa-..."
+docker build -t talentflow-ai .
+docker run --rm -p 8501:8501 --env-file .env --entrypoint streamlit talentflow-ai run src/app.py --server.port=8501 --server.address=0.0.0.0
 ```
 
-## 🎮 How to Use
-1. Run the App:
-```bash
-streamlit run app.py
-```
+## Current behavior and limits
 
-2. Input Job Details: Paste your Job Description into the sidebar (e.g., "Senior Python Developer in Bhopal").
-
-3. Start Search: Click "Find & Score Candidates". The agents will start searching the web.
-
-4. Review & Filter: A table will appear with found candidates. Uncheck anyone you don't like.
-
-5. Generate Emails: Click "Write Emails". The Writer Agent will draft messages only for your selected candidates.
-
-6. Export: Download the CSV or copy the emails.
-
-## 🛡️ License
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🤝 Contributing
-Contributions are welcome! Please open an issue or submit a pull request for any improvements.
-
-1. Fork the Project
-
-2. Create your Feature Branch (git checkout -b feature/AmazingFeature)
-
-3. Commit your Changes (git commit -m 'Add some AmazingFeature')
-
-4. Push to the Branch (git push origin feature/AmazingFeature)
-
-5. Open a Pull Request
+- Candidate search and language-model calls depend on Exa and Google's Gemini-compatible endpoint; provider failures can interrupt a workflow.
+- The search tool converts Exa exceptions into an error string for the agent. The UI catches exceptions around the search crew and displays them.
+- The app asks agents to find real profiles and score fit, but the repository does not implement independent identity or employment verification.
+- Search and profiling instructions include fixed role/location/skill criteria alongside the submitted job description.
+- Candidate email drafts are displayed for review; there is no email delivery integration.
+- The CSV contains the edited table, including its selection column, rather than only selected rows.
+- There is no API service or REST route in this repository; the user interface is Streamlit.
+- No automated tests are present in the tracked project tree.
